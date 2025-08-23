@@ -4,6 +4,102 @@ tags: [uds-core, kubernetes, troubleshooting, istio, security, service-mesh, pep
 
 # UDS Core Troubleshooting Reference Guide
 
+UDS core is a collection of functional layers build into separate packages that are logically grouped together based on their functionality within the platform. Each functional layer is just a zarf package that is published separately. A "UDS bundle" is just a collection of these package that can also be published as a single compressed file for easy transport and installation. 
+
+A UDS Core functional layer will typically be defined in a series of Zarf package definitions layered ontop of one another.
+
+Layer 1 defines the functional layer itself. The logging layer may contain two specific services, Loki & Vector, represented as components in the Zarf package definition, 
+
+```yaml
+kind: ZarfPackageConfig
+metadata:
+  name: core-identity-authorization
+components:
+  - name: keycloak
+    required: true
+    import:
+      path: ../../src/keycloak
+  - name: authservice
+    required: true
+    import:
+      path: ../../src/authservice
+```
+
+These are just local references to other directories within the UDS Core repository, pointing to Layer 2, the flavor layer (my terminology). Here is just another Zarf package yaml definition that differentiates between flavors (upstream, registry1, unicorn) and defines the OCI container images + registry paths specific to that flavor, 
+
+```yaml
+kind: ZarfPackageConfig
+metadata:
+  name: uds-core-loki
+components:
+  - name: loki
+    required: true
+    description: "Install Loki using upstream (docker) images"
+    only:
+      flavor: "upstream"
+    import:
+      path: common
+    charts:
+      - name: loki
+        valuesFiles:
+          - ./values/upstream-values.yaml
+    images:
+      - docker.io/grafana/loki:3.5.3
+  - name: loki
+    required: true
+    description: "Install Loki using registry1 images"
+    only:
+      flavor: "registry1"
+    import:
+      path: common
+    charts:
+      - name: loki
+        valuesFiles:
+          - ./values/registry1-values.yaml
+    images:
+      - registry1.dso.mil/ironbank/opensource/grafana/loki:3.5.3
+
+  - name: loki
+    required: true
+    description: "Install Loki using Rapidfort images"
+    only:
+      flavor: "unicorn"
+    import:
+      path: common
+    charts:
+      - name: loki
+        valuesFiles:
+          - ./values/unicorn-values.yaml
+    images:
+      - quay.io/rfcurated/grafana/loki:3.5.3-jammy-fips-rfcurated-rfhardened
+```
+
+This layer usually provides helm chart value overrides specific to the container images found in that flavors registry. It also imports helm charts from Layer 3, the common layer. This final layer typcially pulls in two helm charts, the upstream chart from the original application maintainer, and a UDS Core specific chart configuration chart (uds-*-config) that provides additional configuration needed to run the application within the UDS Core platform by deploying package CRDs defined by the UDS Operator. So we have 3 layers of zarf packages, 
+
+```yaml
+kind: ZarfPackageConfig
+metadata:
+  name: uds-core-loki-common
+components:
+  - name: loki
+    required: true
+    charts:
+      - name: uds-loki-config
+        namespace: loki
+        version: 0.2.0
+        localPath: ../chart
+      - name: loki
+        url: https://grafana.github.io/helm-charts/ # upstream chart
+        version: 6.36.1
+        namespace: loki
+        valuesFiles:
+          - ../values/values.yaml # opinionated overrides for UDS Core
+```
+
+If a "valuesFiles:" array is not definied in this 3rd layer package, then the default values.yaml file from the upstream chart will be used. Overrides in this layer represent the opinionated defaults for running the application within UDS Core. Note, in layer 2, the "charts:" array is calling the names of the charts defined in layer 3. 
+
+All applications integrated into UDS Core are done so in a similar manner. 
+
 ## What is UDS Core?
 UDS Core is a **secure baseline platform for cloud-native systems** in highly regulated environments. It's a collection of applications packaged as a single `Bundle` that provides:
 - Service mesh security (Istio)
