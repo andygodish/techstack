@@ -143,3 +143,30 @@ Monitor the following for similar issues:
 - **Region**: (AWS GovCloud)
 - **GitLab Version**: 18.2.2
 - **Storage**: External S3 buckets with IRSA authentication
+
+## Additional GitLab Runner IRSA Configuration Issue
+
+Below demonstrates using a wildcard in the IAM role trust relationship for GitLab Runner service account when creating an IAM policy for IRSA:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws-us-gov:iam::123456789012:oidc-provider/oidc.eks.us-gov-east-1.amazonaws.com/id/FGPF95B670123456789B587219876543"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "oidc.eks.us-gov-east-1.amazonaws.com/id/FGPF95B670123456789B587219876543:aud": "sts.amazonaws.com"
+                },
+                "StringLike": {
+                    "oidc.eks.us-gov-east-1.amazonaws.com/id/FGPF95B670123456789B587219876543:sub": "system:serviceaccount:gitlab:gitlab-*"
+                }
+            }
+        }
+    ]
+}
+```
