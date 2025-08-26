@@ -170,3 +170,108 @@ Below demonstrates using a wildcard in the IAM role trust relationship for GitLa
     ]
 }
 ```
+
+## Additional IRSA Trust Policy Fix
+
+### Problem After Initial S3 Configuration
+Even after correctly configuring the GitLab object store secret with proper AWS endpoints, GitLab 500 errors persisted with the same S3 authentication failures:
+```
+ArgumentError (Missing required arguments: aws_access_key_id, aws_secret_access_key)
+```
+
+### Secret Configuration (Required First)
+Before fixing the trust policy, ensure the `gitlab-object-store` secret has the proper configuration:
+
+```bash
+kubectl patch secret gitlab-object-store -n gitlab --type='json' -p='[{"op": "replace", "path": "/data/connection", "value": "'$(echo -n 'provider: AWS
+region: "us-gov-east-1"
+host: "s3.us-gov-east-1.amazonaws.com"
+aws_iam_endpoint: "https://iam.us-gov.amazonaws.com"
+use_iam_profile: true
+aws_signature_version: 4
+path_style: false' | base64 -w 0)'"}]'
+```
+
+**Note**: Adjust region and endpoints for standard AWS regions:
+- `host: "s3.[region].amazonaws.com"`
+- `aws_iam_endpoint: "https://iam.amazonaws.com"`
+
+### Root Cause: Overly Restrictive IAM Trust Policy
+The IAM role trust policy was configured to only allow a single, specific service account rather than the multiple service accounts that GitLab creates.
+
+The s3irsa remote tofu module that I am using does not account for more than one service account to many buckets ration. It works for Loki because Loki only generates a single service account mapped to multiple s3 buckets. GitLab creates multiple service accounts.
+
+**Problematic trust policy:**
+```json
+"Condition": {
+    "StringEquals": {
+        "oidc.eks.us-gov-east-1.amazonaws.com/id/[OIDC-ID]:aud": "sts.amazonaws.com",
+        "oidc.eks.us-gov-east-1.amazonaws.com/id/[OIDC-ID]:sub": "system:serviceaccount:gitlab:gitlab"
+    }
+}
+```
+
+This only allowed the `gitlab` service account, but GitLab actually creates multiple service accounts like `gitlab-webservice`, `gitlab-sidekiq`, `gitlab-toolbox`, etc.
+
+### Solution: Wildcard Trust Policy Pattern
+
+Make sure you get the OICD-ID
+
+**Fixed trust policy:**
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws-us-gov:iam::[ACCOUNT-ID]:oidc-provider/oidc.eks.us-gov-east-1.amazonaws.com/id/[OIDC-ID]"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "oidc.eks.us-gov-east-1.amazonaws.com/id/[OIDC-ID]:aud": "sts.amazonaws.com"
+                },
+                "StringLike": {
+                    "oidc.eks.us-gov-east-1.amazonaws.com/id/[OIDC-ID]:sub": "system:serviceaccount:gitlab:gitlab-*"
+                }
+            }
+        }
+    ]
+}
+```
+
+**Key changes:**
+1. Changed `StringEquals` to `StringLike` for the subject condition
+2. Changed subject from `system:serviceaccount:gitlab:gitlab` to `system:serviceaccount:gitlab:gitlab-*`
+
+### Resolution Commands
+
+**Get correct OIDC provider ID:**
+```bash
+aws iam list-open-id-connect-providers
+```
+
+**Update trust policy:**
+```bash
+aws iam update-assume-role-policy \
+    --role-name [IAM-ROLE-NAME] \
+    --policy-document file://updated-trust-policy.json
+```
+
+**Restart GitLab services:**
+```bash
+kubectl rollout restart deployment/gitlab-webservice-default -n gitlab
+kubectl rollout restart deployment/gitlab-sidekiq-all-in-1-v2 -n gitlab
+```
+
+### Verification
+Check that multiple GitLab service accounts exist:
+```bash
+kubectl get serviceaccount -n gitlab | grep gitlab
+```
+
+The wildcard pattern `gitlab-*` must match the actual service account naming convention GitLab uses.
+
+### Key Lesson
+When configuring IRSA for applications that create multiple service accounts (like GitLab), use wildcard patterns in the IAM trust policy rather than specific service account names. The trust policy is just as important as the secret configuration for successful S3 authentication.
