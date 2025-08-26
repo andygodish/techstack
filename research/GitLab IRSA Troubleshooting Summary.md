@@ -2,6 +2,11 @@
 tags: [gitlab, irsa, s3, eks, aws-govcloud, 500-error, authentication, troubleshooting, helm, kubernetes]
 ---
 
+Two issues that I have repeated myself on with this one. 
+
+1. object secret is missing the `host` parameter and in GovCloud the `aws_iam_endpoint` parameter - I'm not actually sure if this is needed, I suspect #2 is the real issue
+2. the IAM trust policy is too restrictive and only allows a single service account rather than the multiple service accounts that GitLab creates
+
 # GitLab IRSA Troubleshooting Summary
 
 ## Overview
