@@ -57,6 +57,7 @@ EXAMPLES:
 
 SUPPORTED EXTENSIONS:
     Common documentation formats: md, mdx, txt, rst, adoc, org
+    MDX files are automatically converted to .md extension
     Any extension can be specified with -e flag
 EOF
 }
@@ -102,6 +103,11 @@ generate_filename() {
     local relative_path=$(get_relative_path "$source_file" "$source_dir")
     local filename=$(basename "$relative_path")
     local dir_path=$(dirname "$relative_path")
+    
+    # Convert .mdx extension to .md
+    if [[ "$filename" == *.mdx ]]; then
+        filename="${filename%.mdx}.md"
+    fi
     
     if [[ "$dir_path" == "." ]]; then
         # File is in root of source directory
@@ -188,6 +194,7 @@ copy_files() {
         
         # Copy file
         log_info "Copying: $file -> $output_path"
+        
         if cp "$file" "$output_path"; then
             log_success "Copied: $(get_relative_path "$file" "$source_dir") → $new_filename"
             copied_count=$((copied_count + 1))

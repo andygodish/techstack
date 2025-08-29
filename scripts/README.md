@@ -1,4 +1,3 @@
-
 # `docs` - Documentation Collection Tool
 
 A portable CLI tool for collecting documentation files from any repository and preparing them for NotebookLM uploads.
@@ -19,6 +18,7 @@ alias docs='docker run --rm -v "$(pwd):/workspace" docs'
 ## Features
 
 - **Multi-format support**: Collect `.md`, `.mdx`, `.txt`, `.rst`, and other documentation formats
+- **MDX conversion**: Automatically converts `.mdx` files to `.md` extension while preserving all content
 - **Conflict resolution**: Automatically handles multiple files with same names (e.g., `overview.md`)
 - **Portable**: Runs in Docker container - use anywhere without installing dependencies
 - **Flat output**: Creates unique filenames perfect for NotebookLM batch uploads
@@ -29,6 +29,9 @@ alias docs='docker run --rm -v "$(pwd):/workspace" docs'
 ```bash
 # Basic collection - all .md files
 docs -s ./docs
+
+# Collect .mdx files (automatically converts to .md extension)
+docs -s ./src/content/docs -e "mdx" -p "zarf"
 
 # Multiple file types with custom prefix
 docs -s ./documentation -e "md,mdx" -p "my-project"
@@ -67,6 +70,10 @@ Files are renamed to avoid conflicts:
 - `./api/guides/setup.md` → `api-guides-setup.md`
 - `./research/analysis.md` → `research-analysis.md`
 
+**MDX Conversion:**
+- `./src/content/docs/getting-started/index.mdx` → `docs-getting-started-index.md`
+- All JSX components and imports are preserved - the LLM understands them as context
+
 ## Docker Setup
 
 The tool uses a secure Chainguard Wolfi base image:
@@ -102,12 +109,12 @@ docs -s ./docs -v
 
 **With Git change detection:**
 ```bash
-# See what docs changed
-git diff --name-only HEAD origin/main | grep '\.md$'
+# See what docs changed (both .md and .mdx)
+git diff --name-only HEAD origin/main | grep -E '\.(md|mdx)$'
 
 # Collect only if changes exist
-if [[ -n $(git diff --name-only HEAD origin/main | grep '\.md$') ]]; then
-    docs -s ./docs --overwrite
+if [[ -n $(git diff --name-only HEAD origin/main | grep -E '\.(md|mdx)$') ]]; then
+    docs -s ./docs -e "md,mdx" --overwrite
 fi
 ```
 
@@ -115,8 +122,23 @@ fi
 ```bash
 # Collect from multiple repos into shared directory
 cd ~/projects/app1 && docs -s ./docs -p "app1" -o /tmp/all-docs
-cd ~/projects/app2 && docs -s ./guides -p "app2" -o /tmp/all-docs
+cd ~/projects/zarf && docs -s ./src/content/docs -e "mdx" -p "zarf" -o /tmp/all-docs
 # Upload everything from /tmp/all-docs to NotebookLM
+```
+
+**Common use cases:**
+```bash
+# Standard markdown documentation
+docs -s ./docs
+
+# Astro/Next.js MDX documentation  
+docs -s ./src/content/docs -e "mdx"
+
+# Mixed documentation formats
+docs -s ./documentation -e "md,mdx,txt,rst"
+
+# Large documentation sites with custom prefix
+docs -s ./site/src/content/docs -e "mdx" -p "project-name" -v
 ```
 
 ## Development Notes
@@ -127,10 +149,12 @@ Built iteratively to solve real documentation collection challenges:
 2. **Added** conflict resolution for multiple `overview.md` files
 3. **Containerized** with Docker for cross-repository portability
 4. **Debugged** bash compatibility issues between local and container environments
-5. **Optimized** for clean CLI experience without wrapper scripts
+5. **Added** MDX support for modern documentation sites (Astro, Next.js, etc.)
+6. **Optimized** for clean CLI experience without wrapper scripts
 
 Key technical decisions:
 - Flat file naming (not directory structure) for NotebookLM compatibility
+- Simple MDX conversion: change extension only, preserve all content
 - `set -e` with safe arithmetic operations for reliable error handling
 - Security-focused base image with SHA pinning
 - Volume mounting current directory as `/workspace` for seamless operation
