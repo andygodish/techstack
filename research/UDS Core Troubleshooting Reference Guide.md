@@ -1,5 +1,5 @@
 ---
-tags: [uds-core, kubernetes, troubleshooting, istio, security, service-mesh, pepr, keycloak, monitoring]
+tags: [uds-core, kubernetes, troubleshooting, istio, security, service-mesh, pepr, keycloak, monitoring, zarf]
 ---
 
 # UDS Core Troubleshooting Reference Guide
