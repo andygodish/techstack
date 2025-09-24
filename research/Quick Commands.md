@@ -289,6 +289,22 @@ docker build --no-cache -t [IMAGE-NAME] .
 docker inspect [CONTAINER-NAME] --format='{{.State.Health.Status}}'
 ```
 
+### Base64 Line Wrap
+
+Many systems expect base64 as a continuous string without line breaks, especially when used programmatically rather than for human reading.
+
+-w0: Sets wrap width to 0, meaning no line breaks at all - the entire base64 output appears as one continuous string
+
+```base
+# Without -w0 (wrapped at 76 chars):
+echo "hello world" | base64
+aGVsbG8gd29ybGQK
+
+# With -w0 (single line):
+echo "hello world" | base64 -w0
+aGVsbG8gd29ybGQK
+```
+
 ## Notes
 
 - Replace all placeholder values (shown in brackets) with actual values appropriate for your environment
