@@ -1,5 +1,7 @@
 # AI Security Guidelines for Documentation Generation
 
+Provide a separate markdown file for easy copy and paste into a research directory. 
+
 ## CRITICAL: Data Sanitization Rules
 **These rules MUST be followed when generating any documentation, summaries, or reports.**
 

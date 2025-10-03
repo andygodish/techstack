@@ -305,6 +305,17 @@ echo "hello world" | base64 -w0
 aGVsbG8gd29ybGQK
 ```
 
+### Setting a default remote for git 
+
+When you have two remotes and you want to set one as the default for push/pull operations so that you can omit the remote name in commands like `git push` or `git pull`, you can set the default remote using the following command:
+
+```
+git branch --set-upstream-to=origin/main main
+```
+Where `origin` is listed alongside another "remote" source like `upstream` (for example) when you run `git remote -v`.
+
+```bash
+
 ## Notes
 
 - Replace all placeholder values (shown in brackets) with actual values appropriate for your environment
