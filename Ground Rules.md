@@ -1,12 +1,13 @@
 # AI Security Guidelines for Documentation Generation
 
-Provide a separate markdown file for easy copy and paste into a research directory. 
+I save research documents that summzarize my tech-related work to a remote repo. Provide a separate markdown file for easy copy and paste into a research directory outlining what was discussed in this AI chat.
 
 ## CRITICAL: Data Sanitization Rules
+
 **These rules MUST be followed when generating any documentation, summaries, or reports.**
 
 ### AWS & Cloud Provider Information
-- ❌ **NEVER include AWS Account IDs** (12-digit numbers like `123456789012`)
+
 - ❌ **NEVER include IAM Role ARNs** - replace with `arn:aws:iam::[ACCOUNT-ID]:role/[ROLE-NAME]`
 - ❌ **NEVER include S3 bucket names** that contain account identifiers or environment specifics
 - ❌ **NEVER include Access Keys, Secret Keys, or any credential values**
@@ -14,6 +15,7 @@ Provide a separate markdown file for easy copy and paste into a research directo
 - ✅ **DO use placeholders**: `[AWS-ACCOUNT-ID]`, `[S3-BUCKET-NAME]`, `[IAM-ROLE-ARN]`
 
 ### Network & Infrastructure
+
 - ❌ **NEVER include internal IP addresses** (10.x.x.x, 172.16-31.x.x, 192.168.x.x ranges)
 - ❌ **NEVER include specific domain names** or hostnames of internal services
 - ❌ **NEVER include cluster names** that reveal organization structure
@@ -21,18 +23,21 @@ Provide a separate markdown file for easy copy and paste into a research directo
 - ✅ **DO use generic terms that would be publically found in documentation**: `s3.us-gov-east-1.amazonaws.com`, `uds-gov-east1`
 
 ### Organization Information
+
 - ❌ **NEVER include company names, project codenames, or internal identifiers**
 - ❌ **NEVER include specific environment names** that reveal infrastructure details
 - ❌ **NEVER include database connection strings** or service URLs
 - ✅ **DO use generic terms**: `[COMPANY]`, `[PROJECT]`, `[ENVIRONMENT]`
 
 ### Kubernetes & Container Information
+
 - ❌ **NEVER include specific namespace names** that reveal environment structure
 - ❌ **NEVER include container registry URLs** with organization details
 - ❌ **NEVER include specific ConfigMap or Secret names** with environment identifiers
 - ✅ **DO use placeholders**: `[NAMESPACE]`, `[REGISTRY-URL]`, `[CONFIG-NAME]`
 
 ### Security & Monitoring
+
 - ❌ **NEVER include API keys, tokens, or certificates**
 - ❌ **NEVER include monitoring dashboard URLs** or alert manager configurations
 - ❌ **NEVER include specific log aggregation endpoints**
@@ -40,7 +45,8 @@ Provide a separate markdown file for easy copy and paste into a research directo
 
 ## Sanitization Examples
 
-### ❌ WRONG:
+### ❌ WRONG
+
 ```yaml
 connection:
   connection_string: postgresql://secretuser:secretpassword@yourmom.com:5432/secretdatabase?sslmode=require
@@ -48,7 +54,8 @@ connection:
 
 Service account: `arn:aws-us-gov:iam::123456789012:role/uds-s3irsa-dev-abc-gitlab-s3-role`
 
-### ✅ CORRECT:
+### ✅ CORRECT
+
 ```yaml
 connection:
   provider: AWS
@@ -79,9 +86,11 @@ When sanitizing, use these consistent placeholder patterns:
 ## Document Tagging Requirements
 
 ### YAML Front Matter
+
 **ALL generated documentation MUST include YAML front matter with appropriate tags.**
 
 Add this at the very beginning of every markdown document:
+
 ```yaml
 ---
 tags: [tag1, tag2, tag3, tag4, tag5]
@@ -91,6 +100,7 @@ tags: [tag1, tag2, tag3, tag4, tag5]
 ### Tagging Guidelines
 
 **Required Tag Categories:**
+
 1. **Primary Service/Application** - Main technology being documented
    - Examples: `gitlab`, `kubernetes`, `prometheus`, `vault`, `jenkins`
 
@@ -104,6 +114,7 @@ tags: [tag1, tag2, tag3, tag4, tag5]
    - Examples: `aws`, `aws-govcloud`, `gcp`, `azure`, `kubernetes`, `linux`
 
 **Tag Format Rules:**
+
 - Use lowercase only
 - Use hyphens for multi-word tags: `aws-govcloud`, `500-error`, `object-storage`
 - Keep tags concise but descriptive
@@ -113,16 +124,19 @@ tags: [tag1, tag2, tag3, tag4, tag5]
 **Example Tag Sets:**
 
 For incident resolution:
+
 ```yaml
 tags: [gitlab, irsa, s3, eks, aws-govcloud, 500-error, authentication, troubleshooting, helm, kubernetes]
 ```
 
 For configuration guides:
+
 ```yaml
 tags: [kubernetes, security, rbac, configuration, best-practices, kubectl]
 ```
 
 For monitoring setup:
+
 ```yaml
 tags: [prometheus, grafana, monitoring, alerting, kubernetes, deployment]
 ```
@@ -130,6 +144,7 @@ tags: [prometheus, grafana, monitoring, alerting, kubernetes, deployment]
 ## Validation Checklist
 
 Before generating any documentation, verify:
+
 - [ ] No 12-digit AWS account numbers present
 - [ ] No specific ARN values with real account IDs
 - [ ] No internal IP addresses exposed
@@ -140,6 +155,7 @@ Before generating any documentation, verify:
 ### Tag Validation
 
 Before finalizing any document, ensure:
+
 - [ ] YAML front matter is present at the top
 - [ ] At least 5 relevant tags are included
 - [ ] Tags cover: service, technology, problem-type, platform
@@ -149,6 +165,7 @@ Before finalizing any document, ensure:
 ## Adding New Rules
 
 To add new sanitization rules:
+
 1. Identify the sensitive data pattern
 2. Define the placeholder format
 3. Add to the appropriate category above
@@ -158,6 +175,7 @@ To add new sanitization rules:
 ## Emergency Override
 
 If specific values MUST be included for troubleshooting:
+
 1. Clearly mark the section as `[INTERNAL USE ONLY]`
 2. Add a warning comment about manual sanitization needed
 3. Never include in any exported or shared documentation
