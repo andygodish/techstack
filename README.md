@@ -1,8 +1,8 @@
 # techstack
 
-This is a public repository containing research and documentation pertaining to troublshooting I do on a daily basis as a DevOps/Infrastructure/Software engineer. It is meant to be a context base that I can provide to AI when troubleshooting issues I run into when using Open Source software. The idea for this repo comes directly from an [X post](https://x.com/aaditsh/status/1945680357724221605) I stumbled upon. The example repository from that video can be found [here](https://github.com/daveshap/PostLaborEconomics).
+This is a public repository containing research and documentation pertaining to troublshooting I do on a daily basis as a DevOps/Infrastructure/Software engineer. It is meant to be a context base that I can provide to AI when troubleshooting issues I run into when using Open Source software. The idea for this repo comes directly from an [X post](https://x.com/aaditsh/status/1945680357724221605) I stumbled upon. The example repository from that video can be found in this repo, [PostLaborEconomics](https://github.com/daveshap/PostLaborEconomics).
 
-The goal is to create a knowledge base that can be used to quickly reference solutions to common problems. Too often, I find myself repeating the same research when troubleshooting issues, resulting in wasted time. By documenting these solutions, I hope to streamline my workflow and make it easier to find answers to common problems that I've already tackled. 
+The goal is to create a knowledge base that can be used to quickly reference solutions to common problems. Too often, I find myself repeating the same research when troubleshooting issues, resulting in wasted time. By documenting these solutions, I hope to streamline my workflow and make it easier to find answers to common problems that I've already tackled.
 
 ## Structure
 
