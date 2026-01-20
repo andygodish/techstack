@@ -96,6 +96,7 @@ API endpoint: `https://[API-DOMAIN]/[API-ENDPOINT]`
 When sanitizing, use these consistent placeholder patterns:
 
 | Sensitive Data Type | Placeholder Pattern |
+
 |-------------------|-------------------|
 | AWS Account ID | `[ACCOUNT-ID]` |
 | S3 Bucket Name | `[S3-BUCKET-NAME]` |
