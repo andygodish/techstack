@@ -26,6 +26,29 @@ alias docs='docker run --rm -v "$(pwd):/workspace" docs'
 
 ## Usage Examples
 
+## `research-bundle` - Build a NotebookLM bundle from `./research`
+
+This helper selects recent research docs (by keyword hits + recency) and copies the best matches into a flat folder for drag/drop into NotebookLM.
+
+Examples:
+
+```bash
+# Top 25 matches from last year
+./scripts/research-bundle --query "kubernetes irsa" --days 365 --limit 25
+
+# Last 14 days, no query (recency-only)
+./scripts/research-bundle --days 14 --limit 200
+
+# Use a regex query
+./scripts/research-bundle --query "\\birsa\\b|\\boidc\\b" --regex --days 365 --limit 50
+```
+
+Output is written under `./notebook-bundles/<timestamp>__<slug>/`:
+- `index.md` (human index)
+- `manifest.json`
+- flattened copies of selected docs
+
+
 ```bash
 # Basic collection - all .md files
 docs -s ./docs

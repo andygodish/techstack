@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Wrapper around scripts/research_bundle.py
+# Usage examples:
+#   ./scripts/research-bundle --query "kubernetes irsa" --days 365 --limit 50
+#   ./scripts/research-bundle --days 14 --limit 200
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/research_bundle.py" "$@"
