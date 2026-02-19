@@ -1,5 +1,5 @@
 # Dockerfile
-FROM chainguard/wolfi-base:latest@sha256:17ab0709456ce1a2aedd85e95f72e58d73133bb70c33ae945a4d4b2424e984f1
+FROM chainguard/wolfi-base:latest@sha256:9925d3017788558fa8f27e8bb160b791e56202b60c91fbcc5c867de3175986c8
 
 # Install bash and findutils using apk (Alpine-based)
 RUN apk add --no-cache \
